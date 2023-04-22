@@ -10,13 +10,12 @@ We will provide a service which can support Certification issuer and Company dep
 
 ## ZinkedIn features
 * Every work experience are verified.
-* With unirep, companies can verify that we have some great achievment by not revealing our whole CV
-* It also save HR's time cuz Zinkedin performs an automatically selecting function
+* With unirep, companies can verify that we achieve their requirenment by not revealing our whole CV
 
 ## Abstractions about how it works
 
 1. First, Job seeker creates CV through `CV_Template` contract, which can be verified by... let's say ex-company. Relatively, company issues several hiring informations, incuding job title and several discriptions through `Vacancy_Template` contract.
 
-2. Then, Job seekers can search for job vacancies and chooose which job he or she wants to apply for. Company will then recieve CV and can
+2. Then, Job seekers can search for job vacancies and chooose which job he or she wants to apply for. Company will then recieve CV.
 
 3. At last, Companies tell the appliers that whether he or she is admited or not.
