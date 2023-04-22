@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: UNLICENSCED
 pragma solidity ^0.8.0;
+import "./Slot_lib.sol";
 // this is a proxy contract mainly copy from https://solidity-by-example.org/app/upgradeable-proxy/
 contract Vacancy_Proxy {
     // should be company's address that issues this info
@@ -105,17 +106,16 @@ contract Vacancy_Proxy {
     }
 
 }
-
+/*
 library StorageSlot {
     struct AddressSlot {
         address value;
     }
 
-    function getAddressSlot(
-        bytes32 slot
-    ) internal pure returns (AddressSlot storage r) {
+    function getAddressSlot(bytes32 slot) internal pure returns (AddressSlot storage r) {
         assembly {
             r.slot := slot
         }
     }
 }
+*/
