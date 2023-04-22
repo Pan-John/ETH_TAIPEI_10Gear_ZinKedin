@@ -21,6 +21,9 @@ contract CertificateNFT is Ownable, ERC721 {
         _transfersDisabled[id] = true;
         id++;
     }
+    function _balanceof(address owner) external view returns(uint256){
+        return balanceOf(owner);
+    }
     function checkWhiteList()public view returns(string memory){
         if(whiteList[msg.sender] == true) return ("You are in the whiteList!");
         else{
