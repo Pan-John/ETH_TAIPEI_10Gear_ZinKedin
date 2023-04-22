@@ -2,14 +2,24 @@
 
 pragma solidity ^0.8.0;
 
-contract Labor{
+contract CV_Template{
+    address public owner;
+    bool public isInitialized=false;
     string[] public experiences;
     string[] public showlist;
     address[] public NFTIhave;
     uint256 public index = 0;
     mapping(uint256=>bool) public show;
     mapping(address=>uint256) map;
-    function Add(address company, string memory experience) external {
+
+    function initialize(address _company_address)public{
+        require(!isInitialized, "already initialized");
+        // once it's initialize, set isInitialized = true and owner = company's address
+        isInitialized = true;
+        owner = _company_address;
+    }
+
+    function AddExperience(address company, string memory experience) external {
         experiences.push(experience);
         map[company] = index;
         index++;
@@ -21,7 +31,6 @@ contract Labor{
 
 
     function ShowExperience() external returns(string[] memory){
-        
         
         for(uint i = 0; i < index; i++){
             if(show[i]){
@@ -46,6 +55,4 @@ contract Labor{
     function ShowNFT() public view returns(address[] memory){
         return NFTIhave;
     }
-
-
 }
