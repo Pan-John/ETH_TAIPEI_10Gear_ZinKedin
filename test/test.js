@@ -1,67 +1,80 @@
 const { expect } = require("chai");
 
+describe("CertificateNFT", function () {
+    let _NFT, NFT;
+    let owner, address1;
+  
+    beforeEach(async function () {
+        [owner, address1] = await ethers.getSigners();
+        _NFT= await ethers.getContractFactory("CertificateNFT");
+         NFT = await _NFT.deploy();
+        await NFT.deployed();
+    });
+  
+    it("CertificateNFT contract should have right owner", async function () {
+        expect(await NFT.owner()).to.equal(owner.address);
+    });
+  
+    it("only owner can set whitelist", async function () {
+        await expect(NFT.connect(address1).setwhiteList(address1.address))
+        .to.be.revertedWith("Ownable: caller is not the owner");
+        await NFT.connect(owner).setwhiteList(address1.address);
+        expect(await NFT.connect(address1).checkWhiteList()).to.equal('You are in the whiteList!');
+    });
+  
+    it("only whitelist member can mint", async function () {
+        await NFT.connect(owner).setwhiteList(address1.address);
+        await expect(NFT.connect(owner).mint())
+        .to.be.revertedWith("you're not permitted");
+        await NFT.connect(address1).mint();
+        expect(await NFT.connect(address1)._balanceof(address1.address)).to.equal(1);
+    });
+  
+    it("Minted NFT cannot be transferred by anyone", async function () {
+        await NFT.connect(owner).setwhiteList(address1.address);
+        await NFT.connect(address1).mint();
+        await expect(NFT.connect(address1).transferFrom(address1.address, owner.address, 0))
+        .to.be.revertedWith("Transfer disabled");
+    });
+});
+
 describe("Factory", function(){
     this.beforeEach(async function(){
         // Get the owner, user and newImp signers
-        [owner, user, imple_CV, imple_Vacan] = await ethers.getSigners();
+        [Zinkedin, company, applier] = await ethers.getSigners();
         // Get the Factory contract factory
         Factory = await ethers.getContractFactory("Factory");
         // Deploy an instance of the Factory contract with the owner address as the constructor argument
-        factory = await Factory.connect(owner).deploy(imple_CV.address, imple_Vacan.address);
+        factory = await Factory.connect(Zinkedin).deploy();
     });
 
     // Check if the Factory contract is deployed with the correct owner
     describe("deployment", function () {
         it("should deploy Factory contract with correct owner", async function() {
-            expect(await factory.owner()).to.equal(owner.address);
+            expect(await factory.owner()).to.equal(Zinkedin.address);
         });
     });
 
-    describe("deploy Vacancy Template", async function () {
+    describe("Company aspect: deploy Vacancy", async function () {
         it("the owner of new Vacancy contract is the caller of deployVacan", async function() {
-            // Call the deploySafe function using the user account
-            await factory.connect(user).deploy_Vacan();
-
-            // Get the address of the newly deployed Safe contract
-            VACAN_ADDRESS = await factory.deploy_Vacan();
-
-            // Get the instance of the Safe contract using its address
-            const VACAN = await ethers.getContractAt("Vacancy_Template", VACAN_ADDRESS);
-
-            // Get the owner of the newly deployed Safe contract
-            const VACAN_owner = await VACAN.owner();
-
-            // Check if the owner of the new Safe contract is the caller of deploySafe
-            expect(VACAN_owner == user.address);
-
-            // this ain't right cuz when calling deploysafe, will also deploy a Safe contract instead of using factory
-            // just a reminder for myself
-            //await Factory.connect(owner).deploySafe();
-            //Safe = await ethers.getContractFactory("Safe");
-            //safe = await Safe.deploy(owner.address);
-            //expect(await safe.owner()).to.equal(owner.address);  
+            await factory.connect(company).deployVacancyTemplate("_jobTitle");
+            const Vacancy_Address = await factory.vacancy_template_address();
+            const vacancy_address = await ethers.getContractAt("Vacancy_Template",  Vacancy_Address);
+            const Hiring_Hompany = await vacancy_address.owner();
+            expect(Hiring_Hompany == company.address);
         });
     });
 
-    // as sama as deploySafe
-    describe("deployCV", function () {
+    describe("Job-seeker aspect: deploy CV", async function () {
         it("the owner of new CV_template contract is the caller of deploy_CV", async function() {
-            await factory.connect(user).deploy_CV();
-            CV_ADDRESS=await Factory.deploy_CV();
-            const CV = await ethers.getContractAt("SafeProxy",CV_ADDRESS);
-            const SafeProxy_owner = await CV.owner();
-            expect(SafeProxy_owner == user.address);
+            await factory.connect(applier).deployCVTemplate();
+            const CV_Address = await factory.cv_template_address();
+            const cv_address = await ethers.getContractAt("CV_Template",  CV_Address);
+            const Applier = await cv_address.owner();
+            expect(Applier == applier.address);
         });
-    })
-    describe("deployCV", function () {
-        it("the owner of new CV_template contract is the caller of deploy_CV", async function() {
-            await factory.connect(user).deploy_CV();
-            CV_ADDRESS=await Factory.deploy_CV();
-            const CV = await ethers.getContractAt("SafeProxy",CV_ADDRESS);
-            const SafeProxy_owner = await CV.owner();
-            expect(SafeProxy_owner == user.address);
-        });
-    })
+    });
+
 /*
     describe("updateImplementation", function () {
         // Call updateImplementation function from user account and expect it to revert
@@ -80,10 +93,74 @@ describe("Factory", function(){
     */
 })
 
-describe("CV_Template",function(){
+describe("CV_Template", function (){
+    let CV_template, cv_template;
+    let owner, address1;
 
+    beforeEach(async function () {
+      [owner, address1, token] = await ethers.getSigners();
+      CV_template= await ethers.getContractFactory("CV_Template");
+      cv_template = await CV_template.connect(owner).deploy();
+      await cv_template.deployed();
+      await cv_template.initialize(owner.address);
+    });
+
+    it("should init owner address correctly", async function () {
+      expect(await cv_template.owner()).to.equal(owner.address);
+    });
+
+    it("can only be initialized once", async function () {
+      await expect(cv_template.initialize(owner.address)).to.be.revertedWith("already initialized");
+    });
+
+    it("Should only allow owner to add NFT", async function () {
+      // Check address1's balance in cv_template contract
+      await cv_template.connect(owner).AddNFT(token.address);
+      expect(await cv_template.connect(address1).showNFT()).to.equal(token.address);
+    });
 });
 
+
+describe("CV_Template", function(){
+    this.beforeEach(async function(){
+        [company, applier, cv, applier2, cv2] = await ethers.getSigners();
+        CV_Template = await ethers.getContractFactory("CV_Template");
+        cv_template = await CV_Template.deploy();  
+        cv_template 
+    });
+
+    describe("deployment", function () {
+        it("should deploy CV_Template contract with correct owner", async function() {
+            expect(await vacancy_template.owner()).to.equal(company.address);
+            expect(await vacancy_template.getJobTitle()).to.equal("engineer");
+        });
+    });
+
+    describe("Appliers prospect:", function(){
+        it("should get correct job Descriptions", async function() {
+            expect(vacancy_template.DESCRIPTION[1]=="description1");
+            expect(vacancy_template.DESCRIPTION[2]=="description2");
+        });
+        
+        it("should be able to ApplyForJob and have CV address record in APPLICATIONS correctly", async function() {
+            await vacancy_template.connect(applier1).ApplyForJob(cv1.address);
+            await vacancy_template.connect(applier2).ApplyForJob(cv2.address);
+            expect(vacancy_template.connect(company).getApplications==cv1.address,cv2.address);
+            /*
+            it("just change the existing cv contract to new one if applier already applied ", async function() {
+                
+            });
+            it("record new applier & cv contract address and give applier an ID if applier is new", async function() {
+                
+            });
+            */
+        });
+
+
+    })
+
+    
+});
 
 describe("Vacancy_Template", function(){
     this.beforeEach(async function(){
@@ -127,7 +204,7 @@ describe("Vacancy_Template", function(){
 
     
 });
-//////////
+
 describe("Vacancy_Proxy", function () {
     this.beforeEach(async function(){
         [company, user, newimp] = await ethers.getSigners();
