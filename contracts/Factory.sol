@@ -1,104 +1,92 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-
-// 引進合約實例
-import "./labor.sol";
-//import "./laborProxy.sol";
 import "./Vacancy_Template.sol";
 import "./Vacancy_Proxy.sol";
+import "./CV_Template.sol";
+import "./CV_Proxy.sol";
+// this is a factory contact that belongs to ZinKedin, other companies or job-seekers can use function to delploy contract.
+contract Factory{
 
-contract Factory {
-    
-    // Address of the owner of the factory contract
-    address private owner;
-    // Address of CV
-    address public imple_CV;
-    // Address of Vacancy form
-    address public imple_Vacan;
-
-    address[] private deployCVAddr;
-
-    address[] private deployVacanAddr;
-
-    event Create_CV(address _contract);
-    event Create_Vacan(address _contract);
-
-    event deployCV(address _contract);
-    event deployVacan(address _contract);
-    
-    event Imple_CV_Updated(address newImplementation);  
-    event Imple_Vacan_Updated(address newImplementation);  
-
-    event Find(address VacancyAddress);
-
-
-    constructor(address _imple_CV, address _imple_Vacan) {
-        owner = msg.sender;
-        imple_CV = _imple_CV;
-        imple_Vacan = _imple_Vacan;
+    address public owner;
+    constructor(){
+        owner=msg.sender;
     }
 
-    modifier onlyOwner {
-        require(msg.sender == owner, "Only the owner can call this function.");
-        _;
+    address public vacancy_template_address; 
+    address public vacancy_proxy_address;
+    address public cv_template_address; 
+    address public cv_proxy_address;
+
+    // jobTitle => vacancy_address
+    mapping(string => address[]) public JOB_POOL;
+
+    function deployVacancyTemplate(string memory _jobTitle)public returns(address) {
+        Vacancy_Template vacancy_template = new Vacancy_Template();
+        vacancy_template_address=address(vacancy_template);
+        // initialize the new vacancy contract
+        vacancy_template.initialize(msg.sender,_jobTitle);
+        // categorize the new vacancy contract
+        JOB_POOL[_jobTitle].push(vacancy_template_address);
+        return address(vacancy_template);
+    }    
+
+    function deployVacancyProxy()public returns(address){
+        Vacancy_Proxy vacancy_proxy = new Vacancy_Proxy(msg.sender,vacancy_template_address);
+        vacancy_proxy_address=address(vacancy_proxy);
+        return address(vacancy_proxy);
     }
 
-    function update_CV_Imple(address _newImpl) external onlyOwner {
-        require(msg.sender == owner, "Only owner can update implementation");
-        require(_newImpl != address(0),"New implementation address cannot be zero.");
-        imple_CV = _newImpl;
-        emit Imple_CV_Updated(imple_CV);
+    function updateVacancyTemplate(address newImp) public{
+        // only owner can update
+        require(msg.sender==owner,"NOT owner!");
+        vacancy_template_address=newImp;
     }
 
-    function update_Vacan_Imple(address _newImpl) external onlyOwner {
-        require(msg.sender == owner, "Only owner can update implementation");
-        require(_newImpl != address(0),"New implementation address cannot be zero.");
-        imple_Vacan = _newImpl;
-        emit Imple_CV_Updated(imple_Vacan);
+    function deployCVTemplate()public returns(address) {// deploy but not init
+        CV_Template cv_template = new CV_Template();
+        cv_template_address=address(cv_template);
+        return address(cv_template);
+    }    
+
+    function deployCVProxy()public returns(address){
+        CV_Proxy cv_proxy = new CV_Proxy(msg.sender,cv_template_address);
+        cv_proxy_address=address(cv_proxy);
+        return address(cv_proxy);
     }
 
-// 未修改
-    function deploy_CV_Proxy() external returns (address) {
-        
-         // 創建合約實例
-        emit Create_CV(address(labor));
-        deployCVAddr.push(address(labor));
-        return address(labor);
+    function updateCVTemplate(address newImp) public{
+        // only owner can update
+        require(msg.sender==owner,"NOT owner!");
+        cv_template_address=newImp;
     }
 
-    function deploy_Vacan_Proxy() external returns (address) {
-        Vacancy_Proxy proxy = new Vacancy_Proxy();
-        proxy.initialize(msg.sender,imple_Vacan);
-        emit Create_Vacan(address(proxy));
-        deployVacanAddr.push(address(proxy));
-        return address(proxy);
+    // for job-seekers to find vacancies, here we assume there's only three job in the world,
+    // which is dev, trader, auditor
+    function findingVacancy(string memory _jobTitle) view external returns(address[] memory){
+        return JOB_POOL[_jobTitle];
     }
 
 
-    function deploy_CV() external returns (address){
-        Labor labor = new Labor(imple_CV);
-        emit deployCV(address(labor));
-        return address(labor);
-    }
+/*
+    function findingVacancy(string memory _jobTitle) external{
 
-    function deploy_Vacan() external returns (address){
-        Vacancy_Template template = new Vacancy_Template(imple_Vacan);
-        emit deployVacan(address(template));
-        return address(template);
-    }
-
-    function findingVacancy(string _job) external{
-
-        uint256 memory size = deployVacanAddr.length;
+        uint256 size = deployVacanAddr.length;
 
         for (uint i = 0; i < size; i++) {
-            Vacancy_Template vacancy = new Vacancy_Template(msg.sender);
             address JOB = deployVacanAddr[i];
-            uint256 memory job = vacancy.getWorkNum(JOB);
-            if (job == _job) {
+            
+            Vacancy_Template vacancy = Vacancy_Template(JOB);
+            vacancy.initialize(msg.sender,_job);
+            
+            string memory job = vacancy.getJobTitle();
+            if (compareStrings(job, _job)) {
                 emit Find (deployVacanAddr[i]);
             }
         }
     }
 
+    function compareStrings(string memory a, string memory b) public pure returns (bool) {
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
+    }
+*/
 }
