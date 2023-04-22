@@ -8,8 +8,8 @@ contract Vacancy_Template {
 
     string private job_title;
     // stores descriptions 1./2./3. ...
-    string[] DESCRIPTION; 
-    uint256 private description_index;
+    string[] public DESCRIPTION; 
+    //uint256 private description_index;
     uint256 private numOfDescription;
     uint256 public numOfApplications; 
 
@@ -22,23 +22,23 @@ contract Vacancy_Template {
 
     // For companies to issue hiring info, incuding job title and set num of descriptions,
     // the excact descriptions is set in `function AddDiscription`
-    function initialize(address _company_address, string memory _job_title, uint256 _numOfDescription )public{
+    function initialize(address _company_address, string memory _job_title)public{
         require(!isInitialized, "already initialized");
         // once it's initialize, set isInitialized = true and owner = company's address
         isInitialized = true;
         owner = _company_address;
 
         job_title = _job_title;
-        numOfDescription = _numOfDescription;
-        description_index=0;
+        //numOfDescription = _numOfDescription;
+        //description_index=0;
         numOfApplications=0;
     }
     
     // for companies to set discription of this job vacancy
     function AddDiscription(string memory _condidtion) public onlyOwner{ 
-        require(description_index < numOfDescription,"exceeds the description num limit!");
+        //require(description_index < numOfDescription,"exceeds the description num limit!");
         DESCRIPTION.push(_condidtion);
-        description_index++;
+        //description_index++;
     }
 
     // For company to return appliers' applications
