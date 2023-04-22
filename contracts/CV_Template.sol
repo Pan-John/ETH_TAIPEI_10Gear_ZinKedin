@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity ^0.8.0;
 
 contract CV_Template{
@@ -11,12 +10,12 @@ contract CV_Template{
     uint256 public index = 0;
     mapping(uint256=>bool) public show;
     mapping(address=>uint256) map;
-
-    function initialize(address _company_address)public{
+    mapping(address=>string) companyEmail;
+    function initialize(address _applier_address)public{
         require(!isInitialized, "already initialized");
         // once it's initialize, set isInitialized = true and owner = company's address
         isInitialized = true;
-        owner = _company_address;
+        owner = _applier_address;
     }
 
     function AddExperience(address company, string memory experience) external {
@@ -29,6 +28,21 @@ contract CV_Template{
         show[map[msg.sender]] = true;
     }
 
+    function AddNFT(address NFT) external {
+        NFTIhave.push(NFT);
+    }
+
+    function ShowNFT() public view returns(address[] memory){
+        return NFTIhave;
+    }
+
+    function TakeRSAprivateKey(string emailAddress) external {
+        companyEmail[msg.sender] = emailAddress;
+    }
+
+    function ShowCompanyEmail(address company) external returns(string[] memory){
+        return companyEmail[company];
+    }
 
     function ShowExperience() external returns(string[] memory){
         
@@ -46,13 +60,5 @@ contract CV_Template{
             
         }
         return showlist;
-    }
-
-    function AddNFT(address NFT) external {
-        NFTIhave.push(NFT);
-    }
-
-    function ShowNFT() public view returns(address[] memory){
-        return NFTIhave;
     }
 }
