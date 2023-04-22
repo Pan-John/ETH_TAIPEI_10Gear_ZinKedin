@@ -5,10 +5,12 @@ contract Company{
     address public owner; 
     uint256 public work_num;
     //mapping(uint256 => string) formWithExp;
+    string description;
+    
 
     function initialize(uint256 _work_num, string memory _description)public{
         owner = msg.sender;
-        string memory description = _description;
+        description = _description;
         work_num = _work_num;
         //condition_num = _condition_num;
         //createForm(condition_num);
@@ -24,14 +26,22 @@ contract Company{
         description = _description;
         return description;
     }*/
-
+    
     function getWorkNum() public view returns(uint256){
         return work_num;
+    }
+
+    function getDescription()public view returns(string memory){
+        return  description;
     }
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Only the owner can call this function.");
         _;
     } 
+
+    function applythework(){
+        
+    }
     
 }
