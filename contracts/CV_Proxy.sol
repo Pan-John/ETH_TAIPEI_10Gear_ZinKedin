@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "./Slot_lib.sol";
+
 contract CV_Proxy {
     // should be company's address that issues this info
     address public owner;
     bool public isInitialized=false;
-    string[] public experiences;
+    string[] public EXPERIENCE;
     string[] public showlist;
     address[] public NFTIhave;
     uint256 public index = 0;
