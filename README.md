@@ -20,11 +20,19 @@ We all have fun during this ETHTaipei. Thank for holding this event for us!
 
 ## Abstractions about how it works
 
-1. With ZinKedin, job-seekers can create CV through `CV_Template` contract, including experience that can be verified by previous employer and NFT certificate like TOFIL. Relatively, companies can issue hiring informations, incuding job title, several discriptions and requirement like job tenure through `Vacancy_Template` contract.
+1. First, job seeker creates CV through `CV_Template` contract, which can be verified by... let's say ex-company. Relatively, company issues several hiring informations, incuding job title and several discriptions through `Vacancy_Template` contract.
 <img width="567" alt="截圖 2023-04-22 下午11 11 42" src="https://user-images.githubusercontent.com/125814787/233792577-e4cfb024-c985-412b-bfb8-4c5f5621db2f.png">
 
-2. The basic idea is that job-seekers can apply for the job they want and the company will get their applications (in this scenerio, applier’s CV contract address). It’s worth mention that with UniRep, a company can confirm an applier have met there requirement by not revealing applier's whole CV.
-
+2. Then, job seekers can search for job vacancies and chooose which job he or she wants to apply for. Company will then recieve CV.
 <img width="567" alt="截圖 2023-04-22 下午11 22 37" src="https://user-images.githubusercontent.com/125814787/233793007-221153f2-2e5e-432c-82c0-d6d1013fe74c.png">
 
 3. At last, Companies tell the job seeker whether he or she is admited or not.
+
+## Contract address
+### Chiado testnet
+* cv_t:0x91b4b5d8690990f5d96b121ae0966cf579700146
+* vc_t:0xEa0E929a34D7079f51782b62d8d58F2534F81B32
+* cv_p:0xaBeC2F8231715D9Aea92d6D41Fa31A8Bf6f8ff7B
+* vc_p:0xB3F81f9CD307f3fA30Ce1111C9151617d9bA94d9
+* factory:0xd7c8E5981eAeb5Cd8727274CF07524C4CD918360
+* CertificateNFT:0x8b76eD777A369279bc68f639aD3B319ebCfCef72
