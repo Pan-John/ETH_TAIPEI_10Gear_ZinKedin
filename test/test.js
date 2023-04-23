@@ -2,10 +2,10 @@ const { expect } = require("chai");
 
 describe("CertificateNFT", function () {
     let _NFT, NFT;
-    let owner, address1;
+    let owner, address1, address2;
   
     beforeEach(async function () {
-        [owner, address1] = await ethers.getSigners();
+        [owner, address1, address2] = await ethers.getSigners();
         _NFT= await ethers.getContractFactory("CertificateNFT");
          NFT = await _NFT.deploy();
         await NFT.deployed();
@@ -41,7 +41,7 @@ describe("CertificateNFT", function () {
 describe("Factory", function(){
     this.beforeEach(async function(){
         // Get the owner, user and newImp signers
-        [Zinkedin, company, applier] = await ethers.getSigners();
+        [Zinkedin, company,company2,company3, applier] = await ethers.getSigners();
         // Get the Factory contract factory
         Factory = await ethers.getContractFactory("Factory");
         // Deploy an instance of the Factory contract with the owner address as the constructor argument
@@ -60,8 +60,8 @@ describe("Factory", function(){
             await factory.connect(company).deployVacancyTemplate("_jobTitle");
             const Vacancy_Address = await factory.vacancy_template_address();
             const vacancy_address = await ethers.getContractAt("Vacancy_Template",  Vacancy_Address);
-            const Hiring_Hompany = await vacancy_address.owner();
-            expect(Hiring_Hompany == company.address);
+            const Hiring_Company = await vacancy_address.owner();
+            expect(Hiring_Company == company.address);
         });
     });
 
@@ -72,6 +72,14 @@ describe("Factory", function(){
             const cv_address = await ethers.getContractAt("CV_Template",  CV_Address);
             const Applier = await cv_address.owner();
             expect(Applier == applier.address);
+        });
+    });
+
+    describe("findingVacancy", async function () {
+        it("Job-seeker can search which company is hiring what job", async function() {
+            await factory.connect(company3).deployVacancyTemplate("_jobTitle");
+            await factory.connect(company2).deployVacancyTemplate("_jobTitle");
+            expect(factory.connect(applier).findingVacancy("_jobTitle")==[company2.address, company3.address]);
         });
     });
 
@@ -115,51 +123,82 @@ describe("CV_Template", function (){
 
     it("Should only allow owner to add NFT", async function () {
       // Check address1's balance in cv_template contract
+      //require(msg.sender==owner,"not Owner!")
       await cv_template.connect(owner).AddNFT(token.address);
-      expect(await cv_template.connect(address1).showNFT()).to.equal(token.address);
+      expect(await cv_template.connect(owner).NFTIhave(0)).to.equal(token.address);
     });
 });
 
-
-describe("CV_Template", function(){
+describe("CV_Proxy", function () {
     this.beforeEach(async function(){
-        [company, applier, cv, applier2, cv2] = await ethers.getSigners();
+        [company, applier, newimp] = await ethers.getSigners();
         CV_Template = await ethers.getContractFactory("CV_Template");
         cv_template = await CV_Template.deploy();  
-        cv_template 
+        await cv_template.connect(applier).initialize(applier.address);
+
+        CV_Proxy= await ethers.getContractFactory("CV_Proxy");
+        cv_proxy = await CV_Proxy.deploy(applier.address,cv_template.address);  
     });
 
     describe("deployment", function () {
-        it("should deploy CV_Template contract with correct owner", async function() {
-            expect(await vacancy_template.owner()).to.equal(company.address);
-            expect(await vacancy_template.getJobTitle()).to.equal("engineer");
+        it("should deploy CV_Proxy contract with correct owner", async function() {
+            expect(await cv_proxy._getOwner()).to.equal(applier.address);
+        });
+
+        it("should point to an implement contract", async function() {
+            expect(await cv_proxy._getImplementation()).to.equal(cv_template.address);
         });
     });
 
-    describe("Appliers prospect:", function(){
-        it("should get correct job Descriptions", async function() {
-            expect(vacancy_template.DESCRIPTION[1]=="description1");
-            expect(vacancy_template.DESCRIPTION[2]=="description2");
+    // test delegate call
+    describe("Job-seekers prospect (delegatecall):", function(){
+        // check if delegate call can initialize the implemetation, the current implementation is cv_template
+        // it's worth mentioned that array isn'table to set as ABI, so I change it into a function
+        it("proxy delegatecall to 1.initialize implementaion 2.ensure owner is right 3.AddExperience 4.check if EXPERIENCE is right", async function(){
+            await cv_proxy.setImplementation(cv_template.address);
+
+            // Set ABI for CV_Proxy and CV_Template contracts
+            const abi=["function initialize(address _applier_address)public",
+                       "function AddExperience(address company, string memory experience) external",
+                       "function EXPERIENCE(uint256) public view returns (string)",
+                       "function AddNFT(address NFT) external",
+                    ];
+
+            // Create a proxied contract with CV_Proxy address and abi
+            const proxied = new ethers.Contract(cv_proxy.address, abi, applier);
+            // Call initialize function on proxied contract
+            await proxied.initialize(applier.address);
+            // ensure the proxied owner is the caller
+            expect (await proxied._getOwner()).to.eq(applier);
+            //test AddExperience
+            await proxied.AddExperience("Experience1");
+            await proxied.AddExperience("Experience2");
+            expect (await proxied.EXPERIENCE[1]=="Experience1");
+            expect (await proxied.EXPERIENCE[2]=="Experience2");
+
         });
-        
-        it("should be able to ApplyForJob and have CV address record in APPLICATIONS correctly", async function() {
-            await vacancy_template.connect(applier1).ApplyForJob(cv1.address);
-            await vacancy_template.connect(applier2).ApplyForJob(cv2.address);
-            expect(vacancy_template.connect(company).getApplications==cv1.address,cv2.address);
-            /*
-            it("just change the existing cv contract to new one if applier already applied ", async function() {
-                
-            });
-            it("record new applier & cv contract address and give applier an ID if applier is new", async function() {
-                
-            });
-            */
+    });
+
+    describe("update",function(){
+        // ensure non-owner cannot upgrade the implementation of the proxy.
+        it("non-Owner won't able to upgrade implementaion of proxy",async function(){
+            await expect(cv_proxy.connect(company).upgradeTo(newimp.address)).to.be.revertedWith("NOT owner!");
         });
 
+        // ensure the new implementation must be a contract address.
+        it("new implementation should be a contact",async function(){
+            //use a 0 address to test
+            await expect(cv_proxy.connect(applier).upgradeTo("0x0000000000000000000000000000000000000000")).to.be.revertedWith("implementation is not contract");
+        });
+/*
+        // ensure the owner can successfully upgrade the implementation of the proxy.
+        it("Owner should be able to upgrade implementaion of proxy",async function(){
+            await cv_proxy.connect(company).upgradeTo("0x3F107Abd46156487E041195D55e293A79f4B62fD");
+            expect(await cv_proxy._getImplementation()).to.equal("0x3F107Abd46156487E041195D55e293A79f4B62fD");
+        });
+*/
+    });
 
-    })
-
-    
 });
 
 describe("Vacancy_Template", function(){
@@ -181,8 +220,7 @@ describe("Vacancy_Template", function(){
 
     describe("Appliers prospect:", function(){
         it("should get correct job Descriptions", async function() {
-            expect(vacancy_template.DESCRIPTION[1]=="description1");
-            expect(vacancy_template.DESCRIPTION[2]=="description2");
+            expect(vacancy_template.DESCRIPTION==["description1","description2"]);
         });
         
         it("should be able to ApplyForJob and have CV address record in APPLICATIONS correctly", async function() {
@@ -256,7 +294,6 @@ describe("Vacancy_Proxy", function () {
         });
     });
 
-/*
     describe("update",function(){
         // ensure non-owner cannot upgrade the implementation of the proxy.
         it("non-Owner won't able to upgrade implementaion of proxy",async function(){
@@ -266,15 +303,15 @@ describe("Vacancy_Proxy", function () {
         // ensure the new implementation must be a contract address.
         it("new implementation should be a contact",async function(){
             //use a 0 address to test
-            await expect(vacancy_proxy.connect(owner).upgradeTo("0x0000000000000000000000000000000000000000")).to.be.revertedWith("implementation is not contract");
+            await expect(vacancy_proxy.connect(company).upgradeTo("0x0000000000000000000000000000000000000000")).to.be.revertedWith("implementation is not contract");
         });
-
+/*
         // ensure the owner can successfully upgrade the implementation of the proxy.
         it("Owner should be able to upgrade implementaion of proxy",async function(){
-            await vacancy_proxy.connect(owner).upgradeTo(safeupgradeable_v2.address);
-            expect(await vacancy_proxy._getImplementation()).to.equal(safeupgradeable_v2.address);
+            await vacancy_proxy.connect(company).upgradeTo("0x3F107Abd46156487E041195D55e293A79f4B62fD");
+            expect(await vacancy_proxy._getImplementation()).to.equal("0x3F107Abd46156487E041195D55e293A79f4B62fD");
         });
-
-    });
 */
+    });
+
 });
