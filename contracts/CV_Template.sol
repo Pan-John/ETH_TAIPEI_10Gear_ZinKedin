@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 contract CV_Template{
     address public owner;
     bool public isInitialized=false;
-    string[] public experiences;
+    string[] public EXPERIENCE;
     string[] public showlist;
     address[] public NFTIhave;
     uint256 public index = 0;
@@ -19,7 +19,7 @@ contract CV_Template{
     }
 
     function AddExperience(address company, string memory experience) external {
-        experiences.push(experience);
+        EXPERIENCE.push(experience);
         map[company] = index;
         index++;
     }
@@ -36,11 +36,11 @@ contract CV_Template{
         return NFTIhave;
     }
 
-    function TakeRSAprivateKey(string emailAddress) external {
+    function TakeRSAprivateKey(string memory emailAddress) external {
         companyEmail[msg.sender] = emailAddress;
     }
 
-    function ShowCompanyEmail(address company) external returns(string[] memory){
+    function ShowCompanyEmail(address company) external view returns(string memory){
         return companyEmail[company];
     }
 
@@ -48,12 +48,12 @@ contract CV_Template{
         
         for(uint i = 0; i < index; i++){
             if(show[i]){
-                bytes memory str_b = abi.encodePacked(experiences[i], " ", "V");
+                bytes memory str_b = abi.encodePacked(EXPERIENCE[i], " ", "V");
                 string memory str = string(bytes.concat(str_b));
                 showlist.push(str);
             }
             else{
-                bytes memory str_b = abi.encodePacked(experiences[i], " ", "X");
+                bytes memory str_b = abi.encodePacked(EXPERIENCE[i], " ", "X");
                 string memory str = string(bytes.concat(str_b));
                 showlist.push(str);
             }
@@ -61,4 +61,6 @@ contract CV_Template{
         }
         return showlist;
     }
+
+
 }
