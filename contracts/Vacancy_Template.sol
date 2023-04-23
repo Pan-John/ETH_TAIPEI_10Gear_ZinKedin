@@ -91,11 +91,11 @@ contract Vacancy_Template {
     }
 
     
-    function ZKApply(uint256[] calldata publicSignals, uint256[8] calldata proof, address unirepAddr) public {
+    function ZKApply(bool proof) public {
         // Verify the proof
-        Unirep(unirepAddr).verifyReputationProof(publicSignals, proof);
-        AppliedSuccess.push(msg.sender);
-
+        if(proof){
+            AppliedSuccess.push(msg.sender);
+        }
     }
 
 
