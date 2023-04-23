@@ -1,8 +1,12 @@
 # ZinKedin, a Linkedin service on web 3.0
 
-ZinKedin is a Dapp and it's similar to "Linkedin" in web2. However, ZinKedin possesses several advantages. For example, it protects user data with ZK proof from leaking to others who doesn't be permitted. Furthermore, it can also save some time for company HR, because it can utilize Unirep to automatically select CV with simple conditions.
-Moreover, the experience user claim they have can finally get verified on our Dapp！
-We will provide a service which can support Certification issuer and Company deploy their own NFT certificate, the Web3 immutable Certificate. There are more technical detail we want to share with participants. Thank for holding this event.
+ZinKedin is a web3.0 and ZK proof scenario of Linkedin. 
+
+With ZinKedin,  all user data stores on chain and belongs to the user, only the user can decide who can see his own data. user can add verifiable experience and use RSA algorithm or zero-knowledge proof to encrypt their private data. Companies can post job hiring informations and achieve auto selection process on chain.
+
+With ZinKedIn, we use POAP to issue certificates as NFT and utilize UniRep to make applying jobs in zero-knowledge proof. job seekers can prove that they meet the requirements of the position without providing private data.  
+
+We all have fun during this ETHTaipei. Thank for holding this event for us!
 
 ## Problems
 * Work experience on applier's CV may be fake or exaggerated.
