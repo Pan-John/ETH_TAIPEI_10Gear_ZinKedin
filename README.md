@@ -4,7 +4,7 @@ ZinKedin is a Dapp and it's similar to "Linkedin" in web2. However, ZinKedin pos
 Moreover, the experience user claim they have can finally get verified on our Dapp！
 We will provide a service which can support Certification issuer and Company deploy their own NFT certificate, the Web3 immutable Certificate. There are more technical detail we want to share with participants. Thank for holding this event.
 
-## Existing problems about Linkedin
+## Problems
 * Work experience on applier's CV may be fake or exaggerated.
 * CV is stored on the server, which means it is at risk of being leaked.
 
