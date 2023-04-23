@@ -1,6 +1,9 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 // this is a logic contract for company to issue a hiring info and let labors to deliver there appliocations
+interface Unirep {
+    function verifyReputationProof(uint256[] calldata publicSignals, uint256[8] calldata proof) external;
+}
 contract Vacancy_Template {
     // should be company's address that issues this info
     address public owner;
@@ -9,9 +12,11 @@ contract Vacancy_Template {
     string private job_title;
     // stores descriptions 1./2./3. ...
     string[] public DESCRIPTION; 
+    string public LIMIT_DESCRIPTION;
     //uint256 private description_index;
     uint256 private numOfDescription;
     uint256 public numOfApplications; 
+    uint256 public HardLimit;
 
     // stores cv contracts' addresses
     address[] private APPLICATIONS;
@@ -35,10 +40,15 @@ contract Vacancy_Template {
     }
     
     // for companies to set discription of this job vacancy
-    function AddDiscription(string memory _condidtion) public onlyOwner{ 
+    function AddDiscription(string memory _condition) public onlyOwner{ 
         //require(description_index < numOfDescription,"exceeds the description num limit!");
-        DESCRIPTION.push(_condidtion);
+        DESCRIPTION.push(_condition);
         //description_index++;
+    }
+
+    function AddHardLimit(string memory _condition, uint _limit) public onlyOwner{
+        LIMIT_DESCRIPTION = _condition;
+        HardLimit = _limit;
     }
 
     // For company to return appliers' applications
@@ -71,6 +81,15 @@ contract Vacancy_Template {
             APPLIER_ID[msg.sender] = numOfApplications;
         }
     }
+
+    address[] public AppliedSuccess;
+    function ZKApply(uint256[] calldata publicSignals, uint256[8] calldata proof, address unirepAddr) public {
+        // Verify the proof
+        Unirep(unirepAddr).verifyReputationProof(publicSignals, proof);
+        AppliedSuccess.push(msg.sender);
+
+    }
+
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Only the owner can call this function.");
