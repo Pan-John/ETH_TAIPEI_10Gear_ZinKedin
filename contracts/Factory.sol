@@ -42,7 +42,7 @@ contract Factory{
         vacancy_template_address=newImp;
     }
 
-    function deployCVTemplate()public returns(address) {// deploy but not init
+    function deployCVTemplate()public returns(address) {
         CV_Template cv_template = new CV_Template();
         cv_template_address=address(cv_template);
         return address(cv_template);
