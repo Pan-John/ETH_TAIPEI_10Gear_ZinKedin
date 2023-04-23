@@ -17,7 +17,7 @@ contract Vacancy_Template {
     uint256 private numOfDescription;
     uint256 public numOfApplications; 
     uint256 public HardLimit;
-
+    address[] public AppliedSuccess;
     // stores cv contracts' addresses
     address[] private APPLICATIONS;
     // stores appliers' addresses
@@ -49,6 +49,14 @@ contract Vacancy_Template {
     function AddHardLimit(string memory _condition, uint _limit) public onlyOwner{
         LIMIT_DESCRIPTION = _condition;
         HardLimit = _limit;
+    }
+    
+    function getHardLimit() public view returns (uint256) { 
+        return HardLimit;
+    }
+
+    function getAppliedSuccess(uint256 idx) public view returns (address) { 
+        return AppliedSuccess[idx];
     }
 
     // For company to return appliers' applications
@@ -82,7 +90,7 @@ contract Vacancy_Template {
         }
     }
 
-    address[] public AppliedSuccess;
+    
     function ZKApply(uint256[] calldata publicSignals, uint256[8] calldata proof, address unirepAddr) public {
         // Verify the proof
         Unirep(unirepAddr).verifyReputationProof(publicSignals, proof);
